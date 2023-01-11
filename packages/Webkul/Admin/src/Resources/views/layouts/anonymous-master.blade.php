@@ -32,8 +32,8 @@
 
         {!! view_render_event('admin.anonymous-layout.head') !!}
     </head>
-    
-    <body @if (app()->getLocale() == 'ar') class="rtl" @endif>        
+
+    <body @if (app()->getLocale() == 'ar') class="rtl" @endif>
         <div id="app" class="anonymous-layout-container">
             <spinner-meter :full-page="true" v-if="! pageLoaded"></spinner-meter>
 
@@ -46,7 +46,7 @@
                     <div class="brand-logo">
                         <img src="{{ asset('vendor/webkul/admin/assets/images/logo.svg') }}" alt="{{ config('app.name') }}"/>
 
-                        <p>Consumers interaction goes smoothly and efficiently</p>
+                        <p>"Don't tell me the sky's the limit when there are footprints on the moon."</p>
                     </div>
 
                     {!! view_render_event('admin.anonymous-layout.content.before') !!}
@@ -74,7 +74,7 @@
 
 
             window.serverErrors = [];
-            
+
             @if (isset($errors) && count($errors))
                 window.serverErrors = @json($errors->getMessages());
             @endif
