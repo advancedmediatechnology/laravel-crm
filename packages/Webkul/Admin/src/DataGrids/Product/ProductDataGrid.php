@@ -15,13 +15,15 @@ class ProductDataGrid extends DataGrid
     public function prepareQueryBuilder()
     {
         $queryBuilder = DB::table('products')
-            ->addSelect(
-                'products.id',
-                'products.sku',
-                'products.name',
-                'products.price',
-                'products.quantity'
-            );
+            ->addSelect(DB::raw('
+                products.id,
+                products.sku,
+                products.name,
+                products.price,
+                products.quantity,
+                (SELECT attribute_values.text_value FROM attribute_values LEFT JOIN attributes ON attribute_values.attribute_id = attributes.id WHERE attributes.code = "image" AND attribute_values.entity_type = "products" AND attribute_values.entity_id = products.id) as cover'
+            )
+        );
 
         $this->addFilter('id', 'products.id');
 
@@ -35,6 +37,16 @@ class ProductDataGrid extends DataGrid
      */
     public function addColumns()
     {
+
+        $this->addColumn([
+            'index'    => 'cover',
+            'label'    => 'Cover',
+            'type'     => 'image',
+            'closure' => function($row){
+                return '<img height="80" src="'.url('storage/'.$row->cover).'">';
+            }
+        ]);
+
         $this->addColumn([
             'index'    => 'sku',
             'label'    => trans('admin::app.datagrid.sku'),
