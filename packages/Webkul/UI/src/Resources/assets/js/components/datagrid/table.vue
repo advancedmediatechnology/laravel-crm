@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        <sidebar-filter></sidebar-filter>
+        <small>Total results:{{ tableData.records.total }} Page: {{ tableData.records.current_page }}/{{ tableData.records.last_page }}</small>
 
         <div class="table-body" v-if="Object.keys(tableData).length > 0">
             <spinner-meter :full-page="true" v-if="! pageLoaded"></spinner-meter>
