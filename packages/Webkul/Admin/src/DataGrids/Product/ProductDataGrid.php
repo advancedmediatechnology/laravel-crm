@@ -43,7 +43,7 @@ class ProductDataGrid extends DataGrid
             'label'    => 'Cover',
             'type'     => 'image',
             'closure' => function($row){
-                return '<img height="80" src="'.url('storage/'.$row->cover).'">';
+                return '<a href="'. url('storage/' . $row->cover).'" target=\"_blank\" "><img height="80" src="' . url('storage/' . $row->cover) . '"></a>';
             }
         ]);
 
