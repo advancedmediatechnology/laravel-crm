@@ -34,13 +34,30 @@ class OrganizationDataGrid extends DataGrid
      */
     public function prepareQueryBuilder()
     {
+
+
         $queryBuilder = DB::table('organizations')
-            ->addSelect(
-                'organizations.id',
-                'organizations.name',
-                'organizations.address',
-                'organizations.created_at'
-            );
+        ->addSelect(
+            DB::raw(
+                '
+                organizations.id,
+                organizations.name,
+                organizations.address,
+                organizations.created_at,
+               (
+                    SELECT
+                        attribute_values.text_value
+                    FROM
+                        attribute_values LEFT JOIN attributes ON attribute_values.attribute_id = attributes.id
+                    WHERE
+                        attributes.code = "source"
+                        AND
+                        attribute_values.entity_type = "organizations"
+                        AND
+                        attribute_values.entity_id = organizations.id
+                ) as source'
+            )
+        );
 
         $this->addFilter('id', 'organizations.id');
 
@@ -66,6 +83,14 @@ class OrganizationDataGrid extends DataGrid
             'label'    => trans('admin::app.datagrid.name'),
             'type'     => 'string',
             'sortable' => true,
+        ]);
+
+        $this->addColumn([
+            'index'    => 'source',
+            'label'    => 'Source',
+            'type'     => 'string',
+            'sortable' => false,
+            'searchable' => false
         ]);
 
         $this->addColumn([

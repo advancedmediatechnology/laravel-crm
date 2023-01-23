@@ -44,7 +44,8 @@ class ProductDataGrid extends DataGrid
             'type'     => 'image',
             'closure' => function($row){
                 return '<a href="'. url('storage/' . $row->cover).'" target=\"_blank\" "><img height="80" src="' . url('storage/' . $row->cover) . '"></a>';
-            }
+            },
+            'searchable' => false
         ]);
 
         $this->addColumn([

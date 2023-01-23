@@ -36,16 +36,32 @@ class PersonDataGrid extends DataGrid
      */
     public function prepareQueryBuilder()
     {
+
         $queryBuilder = DB::table('persons')
-            ->addSelect(
-                'persons.id',
-                'persons.name as person_name',
-                'persons.emails',
-                'persons.contact_numbers',
-                'organizations.name as organization',
-                'organizations.id as organization_id'
+        ->addSelect(
+            DB::raw(
+                '
+                persons.id,
+                persons.name as person_name,
+                persons.emails,
+                persons.contact_numbers,
+                organizations.name as organization,
+                organizations.id as organization_id,
+                (
+                    SELECT
+                        attribute_values.text_value
+                    FROM
+                        attribute_values LEFT JOIN attributes ON attribute_values.attribute_id = attributes.id
+                    WHERE
+                        attributes.code = "source"
+                        AND
+                        attribute_values.entity_type = "persons"
+                        AND
+                        attribute_values.entity_id = persons.id
+                ) as source'
             )
-            ->leftJoin('organizations', 'persons.organization_id', '=', 'organizations.id');
+        )
+        ->leftJoin('organizations', 'persons.organization_id', '=', 'organizations.id');
 
         $this->addFilter('id', 'persons.id');
         $this->addFilter('person_name', 'persons.name');
@@ -73,6 +89,14 @@ class PersonDataGrid extends DataGrid
             'label'    => trans('admin::app.datagrid.name'),
             'type'     => 'string',
             'sortable' => true,
+        ]);
+
+        $this->addColumn([
+            'index'    => 'source',
+            'label'    => 'Source',
+            'type'     => 'string',
+            'sortable' => false,
+            'searchable' => false
         ]);
 
         $this->addColumn([
