@@ -2,7 +2,9 @@
 
 namespace Webkul\Admin\Http\Controllers\Lead;
 
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Admin\Http\Requests\LeadForm;
@@ -121,9 +123,20 @@ class LeadController extends Controller
                     ];
 
                     foreach ($paginator as $lead) {
-                        $data[$stageId]['leads'][] =  array_merge($lead->toArray(), [
-                            'lead_value' => core()->formatBasePrice($lead->lead_value),
-                        ]);
+
+
+                        $leadHandler = collect(DB::select(DB::raw("SELECT users.name FROM users LEFT JOIN attribute_values ON users.id = attribute_values.integer_value WHERE attribute_values.attribute_id = 6 AND attribute_values.entity_id = :lead_id"), [
+                            'lead_id' => $lead->id,
+                        ]))->first();
+
+                        $leadHandlerName = $leadHandler->name ?? '';
+
+
+                        $data[$stageId]['leads'][] =
+                            array_merge($lead->toArray(), [
+                                'cane' => 'nero',
+                                'lead_value' => core()->formatBasePrice($lead->lead_value),
+                            ]);
                     }
                 } else {
                     foreach ($pipeline->stages as $stage) {
@@ -141,8 +154,20 @@ class LeadController extends Controller
                             'total' => core()->formatBasePrice($query->paginate(10)->sum('lead_value')),
                         ];
 
+
+                        #dd($leadHandler);
+
                         foreach ($paginator as $lead) {
+
+
+                            $leadHandler = collect(DB::select(DB::raw("SELECT users.name FROM users LEFT JOIN attribute_values ON users.id = attribute_values.integer_value WHERE attribute_values.attribute_id = 6 AND attribute_values.entity_id = :lead_id"), [
+                                'lead_id' => $lead->id,
+                            ]))->first();
+
+                            $leadHandlerName = $leadHandler->name ?? '';
+
                             $data[$stage->id]['leads'][] =  array_merge($lead->toArray(), [
+                                'lead_handler_name' => $leadHandlerName,
                                 'lead_value' => core()->formatBasePrice($lead->lead_value),
                             ]);
                         }
@@ -260,7 +285,7 @@ class LeadController extends Controller
             $data['lead_pipeline_stage_id'] = $stage->id;
         }
 
-        $lead = $this->leadRepository->update($data, $id);        
+        $lead = $this->leadRepository->update($data, $id);
 
         Event::dispatch('lead.update.after', $lead);
 
@@ -288,24 +313,24 @@ class LeadController extends Controller
     {
         $currentUser = auth()->guard('user')->user();
 
-        if ($currentUser->view_permission == 'global') {            
+        if ($currentUser->view_permission == 'global') {
             $results = $this->leadRepository->findWhere([
                 ['title', 'like', '%' . urldecode(request()->input('query')) . '%'],
             ]);
-        } elseif ($currentUser->view_permission == 'individual') {            
+        } elseif ($currentUser->view_permission == 'individual') {
             $results = $this->leadRepository->findWhere([
                 ['title', 'like', '%' . urldecode(request()->input('query')) . '%'],
                 ['user_id', '=', $currentUser->id],
             ]);
         } elseif ($currentUser->view_permission == 'group') {
             $userIds = app('\Webkul\User\Repositories\UserRepository')->getCurrentUserGroupsUserIds();
-            
+
             $results = $this->leadRepository->findWhere([
                 ['title', 'like', '%' . urldecode(request()->input('query')) . '%'],
                 ['user_id', 'IN', $userIds],
             ]);
         }
-        
+
         return response()->json($results);
     }
 

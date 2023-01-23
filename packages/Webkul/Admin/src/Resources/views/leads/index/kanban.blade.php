@@ -108,6 +108,11 @@
                     <i class="icon drag-icon"></i>
                 </div>
 
+                <div class="lead-person" v-if="lead.lead_handler_name">
+                    <i class="icon person-icon"></i>
+                    @{{ lead.lead_handler_name }}
+                </div>
+
                 <div class="lead-person">
                     <i class="icon avatar-dark-icon"></i>
                         <a :href="`${personIndexUrl}?id[eq]=${lead.person_id}`">
