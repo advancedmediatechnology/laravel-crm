@@ -173,6 +173,26 @@ class LeadDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
+            'index'    => 'tags',
+            'label'    => 'Tags',
+            'searchable' => false,
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
+                $tags = collect(DB::select(DB::raw(" SELECT tags.name, tags.color FROM tags LEFT JOIN lead_tags on tags.id = lead_tags.tag_id WHERE lead_tags.lead_id = :lead_id "), [
+                    'lead_id' => $row->id,
+                ]));
+                $return = [];
+                if(!is_null($tags)){
+                    foreach($tags as $tag){
+                        $return[] = '<span style="display: inline-block; font-size: 13px; color: #fff; font-weight: bold; padding: 2px 5px; line-height: 15px; border-radius: 3px;background-color:'.$tag->color.'">'.$tag->name.'</span>';
+                    }
+                }
+                return implode('',$return);
+            },
+        ]);
+
+        $this->addColumn([
             'index'            => 'sales_person',
             'label'            => trans('admin::app.datagrid.sales-person'),
             'type'             => 'dropdown',
