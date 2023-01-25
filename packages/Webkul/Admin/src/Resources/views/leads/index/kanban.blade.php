@@ -16,6 +16,9 @@
         .viewport-height {
             height: calc(100vh - 240px);
         }
+        .lead-tag{
+            display: inline-block; font-size: 13px; color: #fff; font-weight: bold; padding: 2px 5px; line-height: 15px; border-radius: 3px;
+        }
     </style>
 @endpush
 
@@ -115,14 +118,17 @@
 
                 <div class="lead-person">
                     <i class="icon avatar-dark-icon"></i>
-                        <a :href="`${personIndexUrl}?id[eq]=${lead.person_id}`">
-                            @{{ lead.person_name }}
-                        </a>
+                    <a :href="`${personIndexUrl}?id[eq]=${lead.person_id}`">
+                        @{{ lead.person_name }}
+                    </a>
                 </div>
 
                 <div class="lead-cost">
                     <i class="icon dollar-circle-icon"></i>@{{ lead.lead_value }}
                 </div>
+
+                <span class="lead-tag" v-for="tag in lead.tags" :style={backgroundColor:tag.color} >@{{tag.name}}</spanc>
+
             </div>
         </kanban-board>
     </script>
