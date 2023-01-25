@@ -49,9 +49,9 @@ class PersonDataGrid extends DataGrid
                 organizations.id as organization_id,
                 (
                     SELECT
-                        attribute_values.text_value
+                        lead_sources.name
                     FROM
-                        attribute_values LEFT JOIN attributes ON attribute_values.attribute_id = attributes.id
+                        attribute_values LEFT JOIN attributes ON attribute_values.attribute_id = attributes.id LEFT JOIN lead_sources on attribute_values.integer_value = lead_sources.id
                     WHERE
                         attributes.code = "source"
                         AND
