@@ -25,6 +25,7 @@ class OrganizationDataGrid extends DataGrid
         parent::__construct();
 
         $this->personRepository = $personRepository;
+        $this->export = true;#bouncer()->hasPermission('contacts.persons.export') ? true : false;
     }
 
     /**
