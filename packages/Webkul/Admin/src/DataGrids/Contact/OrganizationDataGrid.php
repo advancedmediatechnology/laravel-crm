@@ -26,6 +26,24 @@ class OrganizationDataGrid extends DataGrid
 
         $this->personRepository = $personRepository;
         $this->export = true;#bouncer()->hasPermission('contacts.persons.export') ? true : false;
+        $this->itemsPerPage = 30;
+    }
+
+    public function transformColumnsForExport()
+    {
+        $this->collection->transform(function ($record) {
+
+            #$this->transformColumns($record);
+
+            $address = json_decode($record->address);
+            foreach ($address as $field => $value) {
+                $record->$field = $value;
+            }
+
+            #dd($record);
+
+            return $record;
+        });
     }
 
     /**
