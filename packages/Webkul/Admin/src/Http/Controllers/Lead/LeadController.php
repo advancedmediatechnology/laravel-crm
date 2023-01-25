@@ -11,6 +11,7 @@ use Webkul\Admin\Http\Requests\LeadForm;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\StageRepository;
+use Webkul\Tag\Models\Tag;
 
 class LeadController extends Controller
 {
@@ -131,11 +132,15 @@ class LeadController extends Controller
 
                         $leadHandlerName = $leadHandler->name ?? '';
 
+                        $tags = collect(DB::select(DB::raw(" SELECT tags.name, tags.color FROM tags LEFT JOIN lead_tags on tags.id = lead_tags.tag_id WHERE lead_tags.lead_id = :lead_id "), [
+                            'lead_id' => $lead->id,
+                        ]));
 
                         $data[$stageId]['leads'][] =
                             array_merge($lead->toArray(), [
-                                'cane' => 'nero',
+                                'lead_handler_name' => $leadHandlerName,
                                 'lead_value' => core()->formatBasePrice($lead->lead_value),
+                                'tags' => $tags
                             ]);
                     }
                 } else {
@@ -166,9 +171,14 @@ class LeadController extends Controller
 
                             $leadHandlerName = $leadHandler->name ?? '';
 
+                            $tags = collect(DB::select(DB::raw(" SELECT tags.name, tags.color FROM tags LEFT JOIN lead_tags on tags.id = lead_tags.tag_id WHERE lead_tags.lead_id = :lead_id "), [
+                                'lead_id' => $lead->id,
+                            ]));
+
                             $data[$stage->id]['leads'][] =  array_merge($lead->toArray(), [
                                 'lead_handler_name' => $leadHandlerName,
                                 'lead_value' => core()->formatBasePrice($lead->lead_value),
+                                'tags' => $tags
                             ]);
                         }
                     }
