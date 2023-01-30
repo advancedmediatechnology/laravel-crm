@@ -72,6 +72,8 @@ class LeadController extends Controller
             $pipeline = $this->pipelineRepository->getDefaultPipeline();
         }
 
+
+
         return view('admin::leads.index', compact('pipeline'));
     }
 
@@ -82,10 +84,14 @@ class LeadController extends Controller
      */
     public function get()
     {
+
         if (bouncer()->hasPermission('leads.view')) {
             if (request('view_type')) {
                 return app(\Webkul\Admin\DataGrids\Lead\LeadDataGrid::class)->toJson();
             } else {
+
+
+
                 $createdAt = request('created_at') ?? null;
 
                 if ($createdAt && isset($createdAt["bw"])) {
@@ -120,7 +126,8 @@ class LeadController extends Controller
                             'last' => $last = $paginator->lastPage(),
                             'next' => $current < $last ? $current + 1 : null,
                         ],
-                        'total' => core()->formatBasePrice($query->getModel()->paginate(request('page') ? request('page') * 10 : 10, ['lead_value'], 'page', 1)->sum('lead_value')),
+                        #'total' => core()->formatBasePrice($query->getModel()->paginate(request('page') ? request('page') * 10 : 10, ['lead_value'], 'page', 1)->sum('lead_value')),
+                        'total' => DB::table('leads')->where('lead_pipeline_stage_id',request('pipeline_stage_id'))->sum('lead_value'),
                     ];
 
                     foreach ($paginator as $lead) {
@@ -144,6 +151,9 @@ class LeadController extends Controller
                             ]);
                     }
                 } else {
+
+
+
                     foreach ($pipeline->stages as $stage) {
                         $query = $this->leadRepository->getLeadsQuery($pipeline->id, $stage->id, request('search') ?? '', $createdAt);
 
@@ -156,7 +166,8 @@ class LeadController extends Controller
                                 'last' => $last = $paginator->lastPage(),
                                 'next' => $current < $last ? $current + 1 : null,
                             ],
-                            'total' => core()->formatBasePrice($query->paginate(10)->sum('lead_value')),
+                            #'total' => core()->formatBasePrice($query->paginate(10)->sum('lead_value')),
+                            'total' => DB::table('leads')->where('lead_pipeline_stage_id', $stage->id)->sum('lead_value'),
                         ];
 
 
