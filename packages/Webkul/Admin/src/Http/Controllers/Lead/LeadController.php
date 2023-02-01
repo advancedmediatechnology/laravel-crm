@@ -184,7 +184,7 @@ class LeadController extends Controller
                             'next' => $current < $last ? $current + 1 : null,
                         ],
                         #'total' => core()->formatBasePrice($query->getModel()->paginate(request('page') ? request('page') * 10 : 10, ['lead_value'], 'page', 1)->sum('lead_value')),
-                        'total' => number_format(DB::table('leads')->where('lead_pipeline_stage_id',request('pipeline_stage_id'))->sum('lead_value'), '2', ',', '.'),
+                        'total' => number_format(DB::table('leads')->where('lead_pipeline_stage_id',request('pipeline_stage_id'))->sum('lead_value'), '0', ',', '.'),
                     ];
 
                     foreach ($paginator as $lead) {
@@ -236,7 +236,7 @@ class LeadController extends Controller
                             ],
                             #'total' => core()->formatBasePrice($query->paginate(10)->sum('lead_value')),
                             #'total' => number_format(DB::table('leads')->where('lead_pipeline_stage_id', $stage->id)->sum('lead_value'),'2',',','.'),
-                            'total' => number_format($query->sum('lead_value'), '2', ',', '.'),
+                            'total' => number_format($query->sum('lead_value'), '0', ',', '.'),
                         ];
 
 
