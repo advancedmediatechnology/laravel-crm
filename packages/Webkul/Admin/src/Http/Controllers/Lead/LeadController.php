@@ -12,6 +12,7 @@ use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\StageRepository;
 use Webkul\Tag\Models\Tag;
+use Webkul\UI\DataGrid\DataGrid;
 
 class LeadController extends Controller
 {
@@ -72,9 +73,38 @@ class LeadController extends Controller
             $pipeline = $this->pipelineRepository->getDefaultPipeline();
         }
 
+        #dd($pipeline);
+
+        $data = [
+            'sources' => DB::table('lead_sources')->select('id','name')->orderBy('name','ASC')->get()->transform(function($item){ return [
+                'label' => $item->name,
+                'value' => $item->id,
+                'selected' => false,
+                'disabled' => false,
+            ]; }),
+            'sales_persons' => DB::table('users')->select('id','name','email')->orderBy('name', 'ASC')->get()->transform(function ($item) {
+                return [
+                    'label' => $item->name,
+                    'value' => $item->id,
+                    'selected' => false,
+                    'disabled' => false,
+                ];
+            }),
+            'tags' =>  DB::table('tags')->select('id', 'name', 'color')->orderBy('name', 'ASC')->get()->transform(function ($item) {
+                return [
+                    'label' => $item->name,
+                    'value' => $item->id,
+                    'selected' => false,
+                    'disabled' => false,
+                ];
+            })
+        ];
 
 
-        return view('admin::leads.index', compact('pipeline'));
+
+        $viewData = compact('pipeline','data');
+
+        return view('admin::leads.index', $viewData);
     }
 
     /**
@@ -82,15 +112,25 @@ class LeadController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
     public function get()
     {
+
+
+
+
 
         if (bouncer()->hasPermission('leads.view')) {
             if (request('view_type')) {
                 return app(\Webkul\Admin\DataGrids\Lead\LeadDataGrid::class)->toJson();
             } else {
 
+                $request = clone request();
 
+
+                ##################################
+                # qui vengono applicati i filtri #
+                ##################################
 
                 $createdAt = request('created_at') ?? null;
 
@@ -106,18 +146,35 @@ class LeadController extends Controller
                     $createdAt = null;
                 }
 
+
+
                 if (request('pipeline_id')) {
                     $pipeline = $this->pipelineRepository->find(request('pipeline_id'));
                 } else {
                     $pipeline = $this->pipelineRepository->getDefaultPipeline();
                 }
 
+
+
                 $data = [];
 
                 if ($stageId = request('pipeline_stage_id')) {
-                    $query = $this->leadRepository->getLeadsQuery($pipeline->id, $stageId, request('search') ?? '', $createdAt);
 
-                    $paginator = $query->paginate(10);
+
+
+                    #######################################
+                    #######################################
+                    #######################################
+
+                    # caricamento per pipeline stage id   #
+
+                    #######################################
+                    #######################################
+                    #######################################
+
+                    $query = $this->leadRepository->getLeadsQuery($pipeline->id, $stageId, request('search') ?? '', $request->except('page','pipeline_stage_id'));
+
+                    $paginator = $query->paginate(10000);
 
                     $data[$stageId] = [
                         'leads' => [],
@@ -127,7 +184,7 @@ class LeadController extends Controller
                             'next' => $current < $last ? $current + 1 : null,
                         ],
                         #'total' => core()->formatBasePrice($query->getModel()->paginate(request('page') ? request('page') * 10 : 10, ['lead_value'], 'page', 1)->sum('lead_value')),
-                        'total' => DB::table('leads')->where('lead_pipeline_stage_id',request('pipeline_stage_id'))->sum('lead_value'),
+                        'total' => number_format(DB::table('leads')->where('lead_pipeline_stage_id',request('pipeline_stage_id'))->sum('lead_value'), '2', ',', '.'),
                     ];
 
                     foreach ($paginator as $lead) {
@@ -152,12 +209,23 @@ class LeadController extends Controller
                     }
                 } else {
 
+                    ##################################
+                    ##################################
+                    ##################################
+
+                    # caricamento di tutti gli stage #
+
+                    ##################################
+                    ##################################
+                    ##################################
+
 
 
                     foreach ($pipeline->stages as $stage) {
-                        $query = $this->leadRepository->getLeadsQuery($pipeline->id, $stage->id, request('search') ?? '', $createdAt);
 
-                        $paginator = $query->paginate(10);
+                        $query = $this->leadRepository->getLeadsQuery($pipeline->id, $stage->id, request('search') ?? '', request()->except('page', 'pipeline_stage_id'));
+
+                        $paginator = $query->paginate(10000);
 
                         $data[$stage->id] = [
                             'leads' => [],
@@ -167,7 +235,8 @@ class LeadController extends Controller
                                 'next' => $current < $last ? $current + 1 : null,
                             ],
                             #'total' => core()->formatBasePrice($query->paginate(10)->sum('lead_value')),
-                            'total' => DB::table('leads')->where('lead_pipeline_stage_id', $stage->id)->sum('lead_value'),
+                            #'total' => number_format(DB::table('leads')->where('lead_pipeline_stage_id', $stage->id)->sum('lead_value'),'2',',','.'),
+                            'total' => number_format($query->sum('lead_value'), '2', ',', '.'),
                         ];
 
 

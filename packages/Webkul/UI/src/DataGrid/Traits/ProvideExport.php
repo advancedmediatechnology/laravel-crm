@@ -39,7 +39,7 @@ trait ProvideExport
      *
      * @return void
      */
-    protected function transformColumnsForExport()
+    public function transformColumnsForExport()
     {
         $this->collection->transform(function ($record) {
             $this->transformColumns($record);

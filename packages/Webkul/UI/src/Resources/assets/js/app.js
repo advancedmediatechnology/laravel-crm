@@ -78,6 +78,7 @@ Vue.component('pagination-component', require('./components/datagrid/pagination'
 Vue.component('thead-component', require('./components/datagrid/table-head').default);
 Vue.component('tbody-component', require('./components/datagrid/table-body').default);
 Vue.component('sidebar-filter', require('./components/datagrid/side-filter').default);
+Vue.component('sidebar-filter-custom', require('./components/datagrid/side-filter-custom').default);
 Vue.component('tree-view', require('./components/tree-view/tree-view').default);
 Vue.component('tree-item', require('./components/tree-view/tree-item').default);
 Vue.component('tree-checkbox', require('./components/tree-view/tree-checkbox').default);

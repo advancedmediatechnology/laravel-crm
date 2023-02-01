@@ -1,3 +1,4 @@
+
 @push('css')
     <style>
         .content-container {
@@ -21,6 +22,8 @@
         }
     </style>
 @endpush
+
+
 
 <div class="content full-page">
     <div class="table">
@@ -64,7 +67,7 @@
                 />
             </div>
 
-            <sidebar-filter :columns="columns"></sidebar-filter>
+            <sidebar-filter-custom :columns="columns"></sidebar-filter-custom>
 
             <div class="filter-right">
 
@@ -127,11 +130,19 @@
                     <i class="icon dollar-circle-icon"></i>@{{ lead.lead_value }}
                 </div>
 
-                <span class="lead-tag" v-for="tag in lead.tags" :style={backgroundColor:tag.color} >@{{tag.name}}</spanc>
+                <span class="lead-tag" v-for="tag in lead.tags" :style={backgroundColor:tag.color} >@{{tag.name}}</span>
 
             </div>
         </kanban-board>
     </script>
+
+{{--
+
+    {key: 'created_at', value: '2023-01-16,2023-01-31', cond: 'bw'}
+
+    {key: null, value: '10', cond: 'in'}
+
+    --}}
 
     <script>
         Vue.component('kanban-filters', {
@@ -147,6 +158,41 @@
                             'values' : [null, null],
                             'filterable' : true
                         },
+                        'id': {
+                            'type' : 'string',
+                            'label' : "ID",
+                            'filterable' : true,
+                            'index':'id'
+                        },
+                        'lead_source_id':{
+                            'index' : 'lead_source_id',
+                            'type':'dropdown',
+                            'label' : "Source",
+                            'dropdown_options' : @json($data['sources']),
+                            'filterable' : true,
+                        },
+                        'person_id':{
+                            'index' : 'person_id',
+                            'type':'dropdown',
+                            'label' : "Sales person",
+                            'dropdown_options' : @json($data['sales_persons']),
+                            'filterable' : true,
+                        },
+                         'tags':{
+                            'index' : 'tags',
+                            'type':'dropdown',
+                            'label' : "Tags",
+                            'dropdown_options' : @json($data['tags']),
+                            'filterable' : true,
+                        },
+                        'lead_value':{
+                            'type':'value_range',
+                            'label':'Value range',
+                            'filterable' : true,
+                            'index':'lead_value',
+                            'values':[null,null]
+                        }
+
                     }
                 }
             },
@@ -174,6 +220,7 @@
 
                     stage_pagination: {},
 
+
                     leads: [],
 
                     debounce: null,
@@ -181,6 +228,8 @@
                     totalCounts: {},
 
                     personIndexUrl: "{{ route('admin.contacts.persons.index') }}",
+
+                    currentFilters: []
                 }
             },
 
@@ -191,7 +240,8 @@
 
                 blocks: function() {
                     return this.leads;
-                }
+                },
+
             },
 
             created: function () {
@@ -210,6 +260,8 @@
 
             mounted: function () {
                 EventBus.$on('updateKanbanFilter', this.updateFilter);
+
+
 
                 var self = this;
 
@@ -230,10 +282,14 @@
 
             methods: {
                 getLeads: function (searchedKeyword, filterValues) {
+
                     this.$root.pageLoaded = false;
 
                     this.$http.get("{{ route('admin.leads.get', request('pipeline_id')) }}" + `${searchedKeyword ? `?search=${searchedKeyword}` : ''}${filterValues || ''}`)
                         .then(response => {
+
+                            this.leads = new Array();
+
                             this.$root.pageLoaded = true;
 
                             this.$root.pageLoaded = true;
@@ -292,7 +348,26 @@
                 },
 
                 updateFilter: function (data) {
-                    let href = data.key ? `?${data.key}[${data.cond}]=${data.value}` : false;
+
+                    this.currentFilters[data.key] = {
+                        cond:data.cond,
+                        value:data.value
+                    };
+
+
+
+                    let filterArray = [];
+
+                    for(let key in this.currentFilters){
+                        let filter = this.currentFilters[key];
+
+                        filterArray.push(key+'['+filter.cond+']='+filter.value)
+                    }
+
+                    let filterString = (filterArray.length > 0) ? '?'+filterArray.join('&') : '';
+
+                    //let href = data.key ? `?${data.key}[${data.cond}]=${data.value}` : false;
+                    let href = data.key ? filterString : false;
 
                     this.getLeads(false, href);
                 },

@@ -85,14 +85,17 @@ class LeadRepository extends Repository
      * @param  string  $createdAtRange
      * @return mixed
      */
-    public function getLeadsQuery($pipelineId, $pipelineStageId, $term, $createdAtRange)
+    public function getLeadsQuery($pipelineId, $pipelineStageId, $term, $filters)
     {
+
+
+
         return $this->with([
             'attribute_values',
             'pipeline',
             'stage',
-        ])->scopeQuery(function ($query) use($pipelineId, $pipelineStageId, $term, $createdAtRange) {
-            return $query->select(
+        ])->scopeQuery(function ($query) use($pipelineId, $pipelineStageId, $term, $filters) {
+            $query = $query->select(
                     'leads.id as id',
                     'leads.created_at as created_at',
                     'title',
@@ -101,7 +104,8 @@ class LeadRepository extends Repository
                     'leads.person_id as person_id',
                     'lead_pipelines.id as lead_pipeline_id',
                     'lead_pipeline_stages.name as status',
-                    'lead_pipeline_stages.id as lead_pipeline_stage_id'
+                    'lead_pipeline_stages.id as lead_pipeline_stage_id',
+                    DB::raw("(SELECT attribute_values.integer_value FROM attribute_values WHERE attribute_values.attribute_id = 6 AND attribute_values.entity_id = leads.id) as sale_person_id ")
                 )
                 ->addSelect(\DB::raw('DATEDIFF(leads.created_at + INTERVAL lead_pipelines.rotten_days DAY, now()) as rotten_days'))
                 ->leftJoin('persons', 'leads.person_id', '=', 'persons.id')
@@ -110,9 +114,6 @@ class LeadRepository extends Repository
                 ->where("title", 'like', "%$term%")
                 ->where("leads.lead_pipeline_id", $pipelineId)
                 ->where("leads.lead_pipeline_stage_id", $pipelineStageId)
-                ->when($createdAtRange, function($query) use ($createdAtRange) {
-                    return $query->whereBetween('leads.created_at', $createdAtRange);
-                })
                 ->where(function ($query) {
                     $currentUser = auth()->guard()->user();
 
@@ -124,6 +125,63 @@ class LeadRepository extends Repository
                         }
                     }
                 });
+
+                ##################################
+                ####                          ####
+                #### TREATING SPECIAL COLUMNS ####
+                ####                          ####
+                ##################################
+
+
+
+
+                if(is_array($filters) && count($filters) > 0){
+                    foreach($filters as $column => $columnFilters){
+
+
+
+                        switch($column){
+
+                            case 'tags':
+                                $tags = $filters[$column]['in'];
+                                if ($tags != '') {
+                                    $query->leftJoin('lead_tags', 'leads.id', '=', 'lead_tags.lead_id');
+                                    $query->whereIn('lead_tags.tag_id',explode(',',$tags));
+                                }
+                            break;
+
+                            case 'person_id':
+                                $person_id = $filters[$column]['in'];
+                                if($person_id != ''){
+                                    $query->havingRaw('sale_person_id IN ('. $person_id.')');
+                                }
+
+                            break;
+
+                            default:
+                                foreach ($columnFilters as $type => $value) {
+                                    if($value != '' && $value != ','){
+                                        switch ($type) {
+                                            case 'bw':
+                                                $query = $query->whereBetween('leads.' . $column, explode(',', $value));
+                                                break;
+                                            case 'in':
+                                                $query = $query->whereIn('leads.' . $column, [...explode(',', $value)]);
+                                                break;
+                                        }
+                                    }
+                                }
+                            break;
+                        }
+
+
+                    }
+                }
+
+#                dd($query->toSql());
+
+                return $query;
+
             });
     }
 

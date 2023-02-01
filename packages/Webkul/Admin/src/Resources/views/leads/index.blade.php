@@ -5,6 +5,9 @@
 @stop
 
 @section('content-wrapper')
+
+
+
     @php
         $viewType = request()->view_type ?? "kanban";
     @endphp
