@@ -3,6 +3,7 @@
 namespace Webkul\Quote\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Venturecraft\Revisionable\RevisionableTrait;
 use Webkul\Attribute\Traits\CustomAttribute;
 use Webkul\User\Models\UserProxy;
 use Webkul\Contact\Models\PersonProxy;
@@ -12,6 +13,7 @@ use Webkul\Quote\Contracts\Quote as QuoteContract;
 class Quote extends Model implements QuoteContract
 {
     use CustomAttribute;
+    use RevisionableTrait;
 
     protected $table = 'quotes';
 

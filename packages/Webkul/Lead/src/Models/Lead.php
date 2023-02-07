@@ -4,6 +4,7 @@ namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Venturecraft\Revisionable\RevisionableTrait;
 use Webkul\Activity\Models\ActivityProxy;
 use Webkul\Contact\Models\PersonProxy;
 use Webkul\User\Models\UserProxy;
@@ -16,6 +17,7 @@ use Webkul\Lead\Contracts\Lead as LeadContract;
 class Lead extends Model implements LeadContract
 {
     use CustomAttribute;
+    use RevisionableTrait;
 
     protected $casts = [
         'closed_at'           => 'datetime',
@@ -132,7 +134,7 @@ class Lead extends Model implements LeadContract
     }
 
     /**
-     * Returns the rotten days 
+     * Returns the rotten days
      */
     public function getRottenDaysAttribute()
     {

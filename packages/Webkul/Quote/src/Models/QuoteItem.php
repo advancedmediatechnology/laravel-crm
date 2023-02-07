@@ -3,12 +3,13 @@
 namespace Webkul\Quote\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Venturecraft\Revisionable\RevisionableTrait;
 use Webkul\Quote\Contracts\QuoteItem as QuoteItemContract;
 
 class QuoteItem extends Model implements QuoteItemContract
 {
     protected $table = 'quote_items';
-
+    use RevisionableTrait;
     /**
      * The attributes that are mass assignable.
      *

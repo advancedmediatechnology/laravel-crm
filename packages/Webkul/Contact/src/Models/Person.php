@@ -4,6 +4,7 @@ namespace Webkul\Contact\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Venturecraft\Revisionable\RevisionableTrait;
 use Webkul\Attribute\Traits\CustomAttribute;
 use Webkul\Contact\Contracts\Person as PersonContract;
 use Webkul\Contact\Database\Factories\PersonFactory;
@@ -11,7 +12,7 @@ use Webkul\Contact\Database\Factories\PersonFactory;
 class Person extends Model implements PersonContract
 {
     use CustomAttribute, HasFactory;
-
+    use RevisionableTrait;
     /**
      * Table name.
      *
